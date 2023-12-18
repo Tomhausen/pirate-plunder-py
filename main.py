@@ -3,12 +3,14 @@ class SpriteKind:
     treasure = SpriteKind.create()
     hitbox = SpriteKind.create()
     enemy_projectile = SpriteKind.create()
+    port = SpriteKind.create() #
 
 # variables
 ship_acceleration = 1.5
 turn_speed = 0.2
 speed = 0
 rotation = 0
+treasure_onboard = 0 # 
 
 # sprites
 ship = sprites.create(assets.image("ship"), SpriteKind.player)
@@ -17,6 +19,30 @@ transformSprites.rotate_sprite(ship, 90)
 # setup
 tiles.set_current_tilemap(assets.tilemap("level"))
 scene.camera_follow_sprite(ship)
+
+# text
+treasure_text = textsprite.create(str(treasure_onboard), 3, 0) #
+treasure_text.z = 10 # 
+treasure_text.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True)
+
+def update_text(): # 
+    treasure_text.set_text(str(treasure_onboard))
+    treasure_text.right = 160
+    treasure_text.bottom = 120
+update_text()
+
+def make_ports(): # 
+    for i in range(3):
+        port = sprites.create(assets.image("settlement"), SpriteKind.port)
+        port_hitbox = sprites.create(image.create(47, 47), SpriteKind.port)
+        spriteutils.draw_circle(port_hitbox.image, 24, 24, 20, 1)
+        port_hitbox.set_flag(SpriteFlag.INVISIBLE, True)
+        tile = tilesAdvanced.get_all_wall_tiles()._pick_random()
+        tiles.place_on_tile(port, tile)
+        tiles.place_on_tile(port_hitbox, tile)
+        sprites.set_data_sprite(port_hitbox, "treasure", port)
+        tiles.set_wall_at(tile, False)
+make_ports()
 
 def spawn_treasure(tile):
     treasure = sprites.create(assets.image("x"), SpriteKind.treasure)
@@ -64,7 +90,10 @@ def enemy_fire(fort: Sprite):
         spriteutils.set_velocity_at_angle(proj, angle, 100)
 
 def collect_treasure(ship, treasure_hitbox):
-    info.change_score_by(randint(500, 2000))
+    global treasure_onboard # add
+    treasure_onboard += randint(500, 2000) # add
+    update_text()
+    # info.change_score_by(randint(500, 2000)) # delete
     sprites.read_data_sprite(treasure_hitbox, "treasure").destroy()
     treasure_hitbox.destroy()
 sprites.on_overlap(SpriteKind.player, SpriteKind.hitbox, collect_treasure)
@@ -77,6 +106,13 @@ def hit_fort(fort, cannon_ball):
         spawn_treasure(fort.tilemap_location())
         fort.destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.projectile, hit_fort)
+
+def sell_treasure(ship, port): # 
+    global treasure_onboard
+    info.change_score_by(treasure_onboard)
+    treasure_onboard = 0
+    update_text()
+sprites.on_overlap(SpriteKind.player, SpriteKind.port, sell_treasure)
 
 def player_hit(player, cannon_ball):
     info.change_life_by(-1)

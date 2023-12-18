@@ -8,7 +8,8 @@
         "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.2.1",
         "arcade-tilemap-a-star": "github:jwunderl/arcade-tilemap-a-star#v0.4.0",
         "Tiles Advanced": "github:tomhausen/the-code-zone-tiles-advanced#v0.4.3",
-        "pxt-status-bar": "github:jwunderl/pxt-status-bar#v0.4.2"
+        "pxt-status-bar": "github:jwunderl/pxt-status-bar#v0.4.2",
+        "arcade-text": "github:microsoft/arcade-text#v1.3.0"
     },
     "files": [
         "main.blocks",

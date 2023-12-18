@@ -88,6 +88,25 @@ f f f f f f f f f f f f f f f f
 . f b b b c b f f b b b b b f . 
 . f f f f f f f f f f f f f f . 
 `;
+            case "image3":
+            case "settlement":return img`
+d d d d d d d d d d d d d d d d 
+d 7 7 7 7 7 a a a 7 7 7 7 7 7 d 
+d 7 7 7 7 a a a a a 7 7 7 7 7 d 
+d 7 7 7 a 3 3 3 3 3 a 7 7 7 7 d 
+d 7 7 7 7 3 1 3 1 3 7 7 7 7 7 d 
+d 7 7 7 7 3 3 3 3 3 7 7 7 7 7 d 
+d 7 7 7 7 3 3 e 3 3 7 7 7 7 7 d 
+d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d 
+d 7 7 7 7 7 7 7 7 7 7 a a a 7 d 
+d 7 7 7 7 7 7 7 7 7 a a a a a d 
+d 7 7 a a a 7 7 7 a 3 3 3 3 3 a 
+d 7 a a a a a 7 7 7 3 1 3 1 3 d 
+d a 3 3 3 3 3 a 7 7 3 3 3 3 3 d 
+d 7 3 1 3 1 3 7 7 7 3 3 e 3 3 d 
+d 7 3 3 3 3 3 7 7 7 7 7 7 7 7 d 
+d d 3 3 e 3 3 d d d d d d d d d 
+`;
         }
         return null;
     })

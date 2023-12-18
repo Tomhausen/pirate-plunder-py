@@ -2,19 +2,56 @@ namespace SpriteKind {
     export const treasure = SpriteKind.create()
     export const hitbox = SpriteKind.create()
     export const enemy_projectile = SpriteKind.create()
+    export const port = SpriteKind.create()
 }
 
+// 
 //  variables
 let ship_acceleration = 1.5
 let turn_speed = 0.2
 let speed = 0
 let rotation = 0
+let treasure_onboard = 0
+//  
 //  sprites
 let ship = sprites.create(assets.image`ship`, SpriteKind.Player)
 transformSprites.rotateSprite(ship, 90)
 //  setup
 tiles.setCurrentTilemap(assets.tilemap`level`)
 scene.cameraFollowSprite(ship)
+//  text
+let treasure_text = textsprite.create("" + treasure_onboard, 3, 0)
+// 
+treasure_text.z = 10
+//  
+treasure_text.setFlag(SpriteFlag.RelativeToCamera, true)
+function update_text() {
+    //  
+    treasure_text.setText("" + treasure_onboard)
+    treasure_text.right = 160
+    treasure_text.bottom = 120
+}
+
+update_text()
+function make_ports() {
+    let port: Sprite;
+    let port_hitbox: Sprite;
+    let tile: tiles.Location;
+    //  
+    for (let i = 0; i < 3; i++) {
+        port = sprites.create(assets.image`settlement`, SpriteKind.port)
+        port_hitbox = sprites.create(image.create(47, 47), SpriteKind.port)
+        spriteutils.drawCircle(port_hitbox.image, 24, 24, 20, 1)
+        port_hitbox.setFlag(SpriteFlag.Invisible, true)
+        tile = tilesAdvanced.getAllWallTiles()._pickRandom()
+        tiles.placeOnTile(port, tile)
+        tiles.placeOnTile(port_hitbox, tile)
+        sprites.setDataSprite(port_hitbox, "treasure", port)
+        tiles.setWallAt(tile, false)
+    }
+}
+
+make_ports()
 function spawn_treasure(tile: any) {
     let treasure = sprites.create(assets.image`x`, SpriteKind.treasure)
     let hitbox = sprites.create(image.create(47, 47), SpriteKind.hitbox)
@@ -75,7 +112,12 @@ function enemy_fire(fort: Sprite) {
 }
 
 sprites.onOverlap(SpriteKind.Player, SpriteKind.hitbox, function collect_treasure(ship: Sprite, treasure_hitbox: Sprite) {
-    info.changeScoreBy(randint(500, 2000))
+    
+    //  add
+    treasure_onboard += randint(500, 2000)
+    //  add
+    update_text()
+    //  info.change_score_by(randint(500, 2000)) # delete
     sprites.readDataSprite(treasure_hitbox, "treasure").destroy()
     treasure_hitbox.destroy()
 })
@@ -88,6 +130,13 @@ sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Projectile, function hit_fort(for
         fort.destroy()
     }
     
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.port, function sell_treasure(ship: Sprite, port: Sprite) {
+    //  
+    
+    info.changeScoreBy(treasure_onboard)
+    treasure_onboard = 0
+    update_text()
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.enemy_projectile, function player_hit(player: Sprite, cannon_ball: Sprite) {
     info.changeLifeBy(-1)

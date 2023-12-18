@@ -19,6 +19,11 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "fort"
     },
+    "image3": {
+        "data": "hwQQABAAAADd3d3d3d3d3X13d3d3d3rXfXd3d3enMzN9d3d3d6oTM32nd3d3qjPjfTozc3eqEzOtOjFzd6czM606M353d3rXrToxc3d3d9d9OjNzd3p3132nd3enMzPXfXd3d6oTM9d9d3d3qjPj1313d3eqEzPXfXd3d6czM9fd3d3d3drd3Q==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "settlement"
+    },
     "*": {
         "mimeType": "image/x-mkcd-f4",
         "dataEncoding": "base64",
