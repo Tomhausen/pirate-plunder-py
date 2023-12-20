@@ -3,14 +3,15 @@ class SpriteKind:
     treasure = SpriteKind.create()
     hitbox = SpriteKind.create()
     enemy_projectile = SpriteKind.create()
-    port = SpriteKind.create() #
+    port = SpriteKind.create()
 
 # variables
 ship_acceleration = 1.5
 turn_speed = 0.2
 speed = 0
 rotation = 0
-treasure_onboard = 0 # 
+treasure_onboard = 0 
+minimap_open = False # 
 
 # sprites
 ship = sprites.create(assets.image("ship"), SpriteKind.player)
@@ -21,17 +22,25 @@ tiles.set_current_tilemap(assets.tilemap("level"))
 scene.camera_follow_sprite(ship)
 
 # text
-treasure_text = textsprite.create(str(treasure_onboard), 3, 0) #
-treasure_text.z = 10 # 
-treasure_text.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True)
+treasure_text = textsprite.create(str(treasure_onboard), 3, 0) 
+treasure_text.z = 10 
+treasure_text.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True) 
 
-def update_text(): # 
+# minimap
+minimap_object = minimap.minimap(MinimapScale.EIGHTH, 2, 15) # 
+minimap_image = minimap.get_image(minimap_object) # 
+minimap_sprite = sprites.create(minimap_image) #
+minimap_sprite.z = 10 #
+minimap_sprite.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True) #
+minimap_sprite.set_flag(SpriteFlag.INVISIBLE, True) #
+
+def update_text(): 
     treasure_text.set_text(str(treasure_onboard))
     treasure_text.right = 160
     treasure_text.bottom = 120
 update_text()
 
-def make_ports(): # 
+def make_ports():
     for i in range(3):
         port = sprites.create(assets.image("settlement"), SpriteKind.port)
         port_hitbox = sprites.create(image.create(47, 47), SpriteKind.port)
@@ -83,6 +92,16 @@ def player_fire():
         spriteutils.set_velocity_at_angle(proj, angle, 100)
 controller.A.on_event(ControllerButtonEvent.PRESSED, player_fire)
 
+def toggle_map(): #
+    global minimap_open
+    if minimap_open:
+        minimap_sprite.set_flag(SpriteFlag.INVISIBLE, True)
+        minimap_open = False
+    else:
+        minimap_sprite.set_flag(SpriteFlag.INVISIBLE, False)
+        minimap_open = True
+controller.B.on_event(ControllerButtonEvent.PRESSED, toggle_map)
+
 def enemy_fire(fort: Sprite):
     if randint(1, 100) == 1 and spriteutils.distance_between(fort, ship) < 80:
         proj = make_projectile(fort, SpriteKind.enemy_projectile)
@@ -90,10 +109,10 @@ def enemy_fire(fort: Sprite):
         spriteutils.set_velocity_at_angle(proj, angle, 100)
 
 def collect_treasure(ship, treasure_hitbox):
-    global treasure_onboard # add
-    treasure_onboard += randint(500, 2000) # add
+    global treasure_onboard
+    treasure_onboard += randint(500, 2000)
     update_text()
-    # info.change_score_by(randint(500, 2000)) # delete
+    info.change_score_by(randint(500, 2000))
     sprites.read_data_sprite(treasure_hitbox, "treasure").destroy()
     treasure_hitbox.destroy()
 sprites.on_overlap(SpriteKind.player, SpriteKind.hitbox, collect_treasure)
@@ -107,7 +126,7 @@ def hit_fort(fort, cannon_ball):
         fort.destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.projectile, hit_fort)
 
-def sell_treasure(ship, port): # 
+def sell_treasure(ship, port):
     global treasure_onboard
     info.change_score_by(treasure_onboard)
     treasure_onboard = 0
@@ -123,6 +142,19 @@ sprites.on_overlap(SpriteKind.player, SpriteKind.enemy_projectile, player_hit)
 def fix_double_spawn(enemy, other_enemy):
     sprites.all_of_kind(SpriteKind.enemy).pop().destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.enemy, fix_double_spawn)
+
+def update_minimap(): # 
+    if minimap_open:
+        minimap_object = minimap.minimap(MinimapScale.EIGHTH, 2, 15)
+        minimap.include_sprite(minimap_object, ship, MinimapSpriteScale.DOUBLE)
+        for treasure in sprites.all_of_kind(SpriteKind.treasure):
+            minimap.include_sprite(minimap_object, treasure, MinimapSpriteScale.DOUBLE)
+        for fort in sprites.all_of_kind(SpriteKind.enemy):
+            minimap.include_sprite(minimap_object, fort , MinimapSpriteScale.DOUBLE)
+        for port in sprites.all_of_kind(SpriteKind.port):
+            minimap.include_sprite(minimap_object, port, MinimapSpriteScale.DOUBLE)
+        minimap_sprite.set_image(minimap.get_image(minimap_object))
+game.on_update_interval(100, update_minimap)
 
 def turn_ship():
     global rotation
