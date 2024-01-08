@@ -24,6 +24,11 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "settlement"
     },
+    "image5": {
+        "data": "hwQQABAAAAAAkJlhmZkJAACZGZaZmZkAkJkZlpmZmQmZmWGZmRmRmZmZYZmZYRaRmZkZlhmWaRaZmZlhYZmZaZmZmRmWmZmZmZmZaZGZmZmWmZkWFpmZmWGWaZFpkZmZGWEWmZkWmZmZGZGZmRaZmZCZmZlpkZkJAJmZmWmRmQAAkJmZFpkJAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "whirlpool"
+    },
     "*": {
         "mimeType": "image/x-mkcd-f4",
         "dataEncoding": "base64",

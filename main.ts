@@ -3,8 +3,10 @@ namespace SpriteKind {
     export const hitbox = SpriteKind.create()
     export const enemy_projectile = SpriteKind.create()
     export const port = SpriteKind.create()
+    export const pool = SpriteKind.create()
 }
 
+// 
 //  variables
 let ship_acceleration = 1.5
 let turn_speed = 0.2
@@ -12,10 +14,11 @@ let speed = 0
 let rotation = 0
 let treasure_onboard = 0
 let minimap_open = false
-//  
+// 
 //  sprites
 let ship = sprites.create(assets.image`ship`, SpriteKind.Player)
 transformSprites.rotateSprite(ship, 90)
+let whirlpool : Sprite = null
 //  setup
 tiles.setCurrentTilemap(assets.tilemap`level`)
 scene.cameraFollowSprite(ship)
@@ -25,9 +28,9 @@ treasure_text.z = 10
 treasure_text.setFlag(SpriteFlag.RelativeToCamera, true)
 //  minimap
 let minimap_object = minimap.minimap(MinimapScale.Eighth, 2, 15)
-//  
+// 
 let minimap_image = minimap.getImage(minimap_object)
-//  
+// 
 let minimap_sprite = sprites.create(minimap_image)
 // 
 minimap_sprite.z = 10
@@ -91,6 +94,13 @@ game.onUpdateInterval(2000, function spawn_loop() {
     }
     
 })
+game.onUpdateInterval(20000, function spawn_whirlpool() {
+    
+    whirlpool = sprites.create(assets.image`whirlpool`, SpriteKind.pool)
+    tiles.placeOnRandomTile(whirlpool, assets.tile`water`)
+    whirlpool.lifespan = 10000
+    whirlpool.z = -1
+})
 function make_projectile(source: Sprite, kind: number): Sprite {
     let proj = sprites.create(assets.image`cannon ball`, kind)
     proj.setPosition(source.x, source.y)
@@ -103,10 +113,12 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function player_fire() {
     let proj: Sprite;
     let angle: number;
     for (let rotation = 0; rotation < 181; rotation += 180) {
-        proj = make_projectile(ship, SpriteKind.Projectile)
-        angle = transformSprites.getRotation(ship) + rotation
-        angle = spriteutils.degreesToRadians(angle)
-        spriteutils.setVelocityAtAngle(proj, angle, 100)
+        for (let aim = -15; aim < 16; aim += 15) {
+            proj = make_projectile(ship, SpriteKind.Projectile)
+            angle = transformSprites.getRotation(ship) + rotation + aim
+            angle = spriteutils.degreesToRadians(angle)
+            spriteutils.setVelocityAtAngle(proj, angle, 100)
+        }
     }
 })
 controller.B.onEvent(ControllerButtonEvent.Pressed, function toggle_map() {
@@ -166,7 +178,7 @@ sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Enemy, function fix_double_spawn(
 })
 game.onUpdateInterval(100, function update_minimap() {
     let minimap_object: minimap.Minimap;
-    //  
+    // 
     if (minimap_open) {
         minimap_object = minimap.minimap(MinimapScale.Eighth, 2, 15)
         minimap.includeSprite(minimap_object, ship, MinimapSpriteScale.Double)
@@ -208,9 +220,19 @@ function move() {
     spriteutils.setVelocityAtAngle(ship, angle, speed)
 }
 
+function handle_whirlpool() {
+    if (spriteutils.distanceBetween(ship, whirlpool) < 100) {
+        ship.vx += Math.sign(whirlpool.x - ship.x) * 15
+        ship.vy += Math.sign(whirlpool.y - ship.y) * 15
+    }
+    
+    transformSprites.changeRotation(whirlpool, 1)
+}
+
 game.onUpdate(function tick() {
     turn_ship()
     move()
+    handle_whirlpool()
     for (let enemy of sprites.allOfKind(SpriteKind.Enemy)) {
         enemy_fire(enemy)
     }

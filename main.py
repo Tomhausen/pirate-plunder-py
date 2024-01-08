@@ -4,37 +4,39 @@ class SpriteKind:
     hitbox = SpriteKind.create()
     enemy_projectile = SpriteKind.create()
     port = SpriteKind.create()
+    pool = SpriteKind.create() #
 
 # variables
 ship_acceleration = 1.5
 turn_speed = 0.2
 speed = 0
 rotation = 0
-treasure_onboard = 0 
-minimap_open = False # 
+treasure_onboard = 0
+minimap_open = False #
 
 # sprites
 ship = sprites.create(assets.image("ship"), SpriteKind.player)
 transformSprites.rotate_sprite(ship, 90)
+whirlpool: Sprite = None
 
 # setup
 tiles.set_current_tilemap(assets.tilemap("level"))
 scene.camera_follow_sprite(ship)
 
 # text
-treasure_text = textsprite.create(str(treasure_onboard), 3, 0) 
-treasure_text.z = 10 
-treasure_text.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True) 
+treasure_text = textsprite.create(str(treasure_onboard), 3, 0)
+treasure_text.z = 10
+treasure_text.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True)
 
 # minimap
-minimap_object = minimap.minimap(MinimapScale.EIGHTH, 2, 15) # 
-minimap_image = minimap.get_image(minimap_object) # 
+minimap_object = minimap.minimap(MinimapScale.EIGHTH, 2, 15) #
+minimap_image = minimap.get_image(minimap_object) #
 minimap_sprite = sprites.create(minimap_image) #
 minimap_sprite.z = 10 #
 minimap_sprite.set_flag(SpriteFlag.RELATIVE_TO_CAMERA, True) #
 minimap_sprite.set_flag(SpriteFlag.INVISIBLE, True) #
 
-def update_text(): 
+def update_text():
     treasure_text.set_text(str(treasure_onboard))
     treasure_text.right = 160
     treasure_text.bottom = 120
@@ -77,6 +79,14 @@ def spawn_loop():
         spawn_fort(tile)
 game.on_update_interval(2000, spawn_loop)
 
+def spawn_whirlpool():
+    global whirlpool
+    whirlpool = sprites.create(assets.image("whirlpool"), SpriteKind.pool)
+    tiles.place_on_random_tile(whirlpool, assets.tile("water"))
+    whirlpool.lifespan = 10000
+    whirlpool.z = -1
+game.on_update_interval(20000, spawn_whirlpool)
+
 def make_projectile(source: Sprite, kind):
     proj = sprites.create(assets.image("cannon ball"), kind)
     proj.set_position(source.x, source.y)
@@ -86,10 +96,11 @@ def make_projectile(source: Sprite, kind):
 
 def player_fire():
     for rotation in range(0, 181, 180):
-        proj = make_projectile(ship, SpriteKind.projectile)
-        angle = transformSprites.get_rotation(ship) + rotation
-        angle = spriteutils.degrees_to_radians(angle)
-        spriteutils.set_velocity_at_angle(proj, angle, 100)
+        for aim in range(-15, 16, 15):
+            proj = make_projectile(ship, SpriteKind.projectile)
+            angle = transformSprites.get_rotation(ship) + rotation + aim
+            angle = spriteutils.degrees_to_radians(angle)
+            spriteutils.set_velocity_at_angle(proj, angle, 100)
 controller.A.on_event(ControllerButtonEvent.PRESSED, player_fire)
 
 def toggle_map(): #
@@ -143,7 +154,7 @@ def fix_double_spawn(enemy, other_enemy):
     sprites.all_of_kind(SpriteKind.enemy).pop().destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.enemy, fix_double_spawn)
 
-def update_minimap(): # 
+def update_minimap(): #
     if minimap_open:
         minimap_object = minimap.minimap(MinimapScale.EIGHTH, 2, 15)
         minimap.include_sprite(minimap_object, ship, MinimapSpriteScale.DOUBLE)
@@ -175,9 +186,16 @@ def move():
     angle = spriteutils.degrees_to_radians(transformSprites.get_rotation(ship) - 90)
     spriteutils.set_velocity_at_angle(ship, angle, speed)
 
+def handle_whirlpool():
+    if spriteutils.distance_between(ship, whirlpool) < 100:
+        ship.vx += Math.sign(whirlpool.x - ship.x) * 15
+        ship.vy += Math.sign(whirlpool.y - ship.y) * 15
+    transformSprites.change_rotation(whirlpool, 1)
+
 def tick():
     turn_ship()
     move()
+    handle_whirlpool()
     for enemy in sprites.all_of_kind(SpriteKind.enemy):
         enemy_fire(enemy)
 game.on_update(tick)
